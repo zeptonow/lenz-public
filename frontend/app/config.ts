@@ -10,22 +10,22 @@ interface EnvironmentConfig {
 
 const ENVIRONMENTS: Record<string, EnvironmentConfig> = {
   local: {
-    origin: 'http://lenz.zepto.qa',
-    apiUrl: 'http://lenz-dashboard.zepto.qa/api',
-    v2ApiUrl: 'http://lenz-dashboard.zepto.qa',
-    assetsHost: 'http://lenz-processor.zepto.qa',
+    origin: 'http://localhost:8000',
+    apiUrl: 'http://localhost:8000/api',
+    v2ApiUrl: 'http://localhost:8000',
+    assetsHost: 'http://localhost:8000',
   },
   qa: {
-    origin: 'http://lenz.zepto.qa',
-    apiUrl: 'http://lenz-dashboard.zepto.qa/api',
-    v2ApiUrl: 'http://lenz-dashboard.zepto.qa',
-    assetsHost: 'http://lenz-processor.zepto.qa',
+    origin: 'http://localhost:8000',
+    apiUrl: 'http://localhost:8000',
+    v2ApiUrl: 'http://localhost:8000',
+    assetsHost: 'http://localhost:8000',
   },
   prod: {
-    origin: 'http://lenz.zepto.co.in',
-    apiUrl: 'http://lenz-dashboard-int.zepto.co.in/api',
-    v2ApiUrl: 'http://lenz-dashboard-int.zepto.co.in',
-    assetsHost: 'http://lenz-processor-int.zepto.co.in',
+    origin: 'http://localhost:8000',
+    apiUrl: 'http://localhost:8000/api',
+    v2ApiUrl: 'http://localhost:8000',
+    assetsHost: 'http://localhost:8000',
   },
 };
 
@@ -48,13 +48,11 @@ function detectEnvironment(): string {
       return 'local';
     }
     
-    // Check for QA environment (zepto.qa domain)
-    if (hostname.includes('zepto.qa')) {
+    if (hostname.includes('http://localhost:8000')) {
       return 'qa';
     }
     
-    // Production (zepto.co.in domain)
-    if (hostname.includes('zepto.co.in')) {
+    if (hostname.includes('http://localhost:8000')) {
       return 'prod';
     }
     

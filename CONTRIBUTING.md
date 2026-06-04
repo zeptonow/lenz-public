@@ -8,7 +8,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ## Where to start
 
-- Browse the issue tracker in `https://github.com/zepto-labs/lenZ/issues`.
+- Browse the issue tracker in `https://github.com/zeptonow/lenZ/issues`.
 - If you want to work on an existing issue, leave a comment so others don’t duplicate the effort.
 - If you’re proposing a larger change, open an issue first to align on approach and scope.
 

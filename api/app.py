@@ -112,9 +112,6 @@ origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3333",
     "http://127.0.0.1:3000",
-    "http://lenz.zepto.qa",  # QA frontend
-    "http://lenz-web-int.zepto.co.in",  # Production frontend
-    "http://lenz.zepto.co.in",  # Production frontend (alternative)
 ]
 
 app.add_middleware(

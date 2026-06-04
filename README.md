@@ -67,9 +67,9 @@ See `CONTRIBUTING.md` for:
 
 ## Links
 
-- **Repository**: `https://github.com/zepto-labs/lenZ`
-- **Issues**: `https://github.com/zepto-labs/lenZ/issues`
-- **Pull requests**: `https://github.com/zepto-labs/lenZ/pulls`
+- **Repository**: `https://github.com/zeptonow/lenZ`
+- **Issues**: `https://github.com/zeptonow/lenZ/issues`
+- **Pull requests**: `https://github.com/zeptonow/lenZ/pulls`
 
 ## License
 

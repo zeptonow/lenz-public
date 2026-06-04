@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM registry.zepto.co.in/hardened-images/multi-arch/harden-node_24 AS builder
+FROM registry_url AS builder
 ARG NODE_OPTIONS="--max-old-space-size=10240"
 ENV NODE_OPTIONS=$NODE_OPTIONS
 USER root
@@ -10,7 +10,7 @@ COPY ./frontend .
 RUN cp .env.sample .env
 RUN yarn && yarn build
 
-FROM registry.zepto.co.in/hardened-images/multi-arch/harden-nginx_stable-alpine
+FROM registry_url
 ARG GIT_SHA
 LABEL GIT_SHA=$GIT_SHA
 USER root

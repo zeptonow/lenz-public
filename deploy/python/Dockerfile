@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM registry.zepto.co.in/hardened-images/multi-arch/harden-python_3.12 AS builder
+FROM registry_url AS builder
 ARG ACCESS_TOKEN
 USER root
 RUN git config --global url."https://${ACCESS_TOKEN}:@github.com/zeptonow".insteadOf "https://github.com/zeptonow"
@@ -13,7 +13,7 @@ RUN python3 -m venv /venv && \
     /venv/bin/pip install --no-cache-dir --upgrade pip && \
     /venv/bin/pip install --no-cache-dir -r requirements.txt
 
-FROM registry.zepto.co.in/hardened-images/multi-arch/harden-python_3.12
+FROM registry_url
 ARG GIT_SHA
 LABEL GIT_SHA=$GIT_SHA
 
