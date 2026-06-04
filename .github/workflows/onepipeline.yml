@@ -1,0 +1,51 @@
+name: One Pipeline
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environment: "
+        required: true
+        default: "qa"
+        type: choice
+        options:
+          - qa
+          - incident
+      All:
+        type: boolean
+      lenz-worker:
+        type: boolean
+      lenz-server:
+        type: boolean
+      lenz-web:
+        type: boolean
+      lenz-dashboard:
+        type: boolean
+      components:
+        type: string
+        description: "Add other services to be deployed(comma separated)."
+        required: false
+      release_type:
+        description: "🚀 Select the type of release for UAT promotion, skip for QA"
+        required: false
+        type: choice
+        options:
+          - hotfix (Patch)
+          - feature (Minor)
+          - release (Major)
+
+jobs:
+  master_ci:
+    uses: zeptonow/central-ci-workflows/.github/workflows/OnePipeline.yml@master
+    with:
+      build_inputs: "--build-arg access_token=${GH_ACCESS_TOKEN}"
+      language:  other
+      version:   1.25
+      team_name: last-mile
+      multi_arch_build: true
+    secrets: inherit
+
