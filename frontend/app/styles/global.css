@@ -1,0 +1,40 @@
+
+
+.form-field > label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: '#888';
+}
+
+.capitalize-first::first-letter {
+    text-transform: uppercase;
+}
+
+input.no-focus:focus {
+    outline: none !important;
+    border: solid thin transparent !important;
+}
+
+.widget-wrapper {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid var(--color-gray-light);
+    background-color: var(--color-white);
+}
+
+img {
+  display: inline-block;
+}
+
+.lucide {
+  stroke-width: 1.5px;
+}
+
+.reset .lucide {
+  stroke-width: revert-layer;
+}
+
+
+.ant-pagination-simple-pager input {
+  min-width: 80px;
+}

@@ -1,0 +1,14 @@
+// Auto-generated, do not edit
+package messages
+
+func IsReplayerType(id int) bool {
+	return <%= $messages.select { |msg| msg.replayer == false }.map{ |msg| "#{msg.id} != id" }.join(' && ') %>
+}
+
+func IsMobileType(id int) bool {
+	return <%= $messages.select { |msg| msg.context == :ios }.map{ |msg| "#{msg.id} == id"}.join(' || ') %>
+}
+
+func IsDOMType(id int) bool {
+	return <%= $messages.select { |msg| msg.replayer == true }.map{ |msg| "#{msg.id} == id" }.join(' || ') %>
+}

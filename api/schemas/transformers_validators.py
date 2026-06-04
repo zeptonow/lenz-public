@@ -1,0 +1,83 @@
+import re
+from typing import Any, Type, Union
+
+from pydantic import ValidationInfo
+
+from .overrides import Enum
+
+NAME_PATTERN = r"^[a-z,A-Z,0-9,\-,é,è,à,ç, ,|,&,\/,\\,_,.,#,']*$"
+
+
+def transform_email(email: str) -> str:
+    return email.lower().strip() if isinstance(email, str) else email
+
+
+def int_to_string(value: int) -> str:
+    return str(value) if isinstance(value, int) else value
+
+
+def remove_whitespace(value: str) -> str:
+    return " ".join(value.split()) if isinstance(value, str) else value
+
+
+def remove_duplicate_values(value: list) -> list:
+    if value is not None and isinstance(value, list):
+        if len(value) > 0 and (isinstance(value[0], int) or isinstance(value[0], dict)):
+            return value
+        value = list(set(value))
+    return value
+
+
+def single_to_list(value: Union[list, Any]) -> list:
+    if value is not None and not isinstance(value, list):
+        value = [value]
+    return value
+
+
+def force_is_event(events_enum: list[Type[Enum]]):
+    def fn(value: list):
+        if value is not None and isinstance(value, list):
+            for v in value:
+                if v.get("type") is None:
+                    v["isEvent"] = False
+                    continue
+                r = False
+                for en in events_enum:
+                    if en.has_value(v["type"]) or en.has_value(v["type"].lower()):
+                        r = True
+                        break
+                v["isEvent"] = r
+        return value
+
+    return fn
+
+
+def check_alphanumeric(v: str, info: ValidationInfo) -> str:
+    if isinstance(v, str):
+        is_alphanumeric = v.replace(" ", "").isalnum()
+        assert is_alphanumeric, f"{info.field_name} must be alphanumeric"
+    return v
+
+
+def check_account_name(v: str, info: ValidationInfo) -> str:
+    if isinstance(v, str) and len(v) > 0:
+        pattern = r"^[\w\s\-'\.áéíóúàèìòùâêîôûäëïöüãõñçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÃÕÑÇ]+$"
+        is_valid = re.match(pattern, v, re.UNICODE)
+        assert is_valid, (
+            f"{info.field_name} contains invalid characters. Only letters, numbers, spaces, hyphens, apostrophes, and periods are allowed"
+        )
+    return v
+
+
+def check_regex(v: str) -> str:
+    assert v is not None, "Regex is null"
+    assert isinstance(v, str), "Regex value must be a string"
+    assert len(v) > 0, "Regex is empty"
+    is_valid = None
+    try:
+        re.compile(v)
+    except re.error as exc:
+        is_valid = f"Invalid regex: {exc} (at position {exc.pos})"
+
+    assert is_valid is None, is_valid
+    return v

@@ -1,0 +1,290 @@
+package api
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"openreplay/backend/pkg/analytics/filters"
+	"openreplay/backend/pkg/analytics/users"
+	"openreplay/backend/pkg/analytics/users/model"
+	"openreplay/backend/pkg/logger"
+	"openreplay/backend/pkg/server/api"
+)
+
+// @title OpenReplay Analytics API
+// @version 1.0
+// @description API for product analytics - events and users management, querying, and filtering
+// @BasePath /api/v1
+
+type handlersImpl struct {
+	log      logger.Logger
+	users    users.Users
+	handlers []*api.Description
+}
+
+func (h *handlersImpl) GetAll() []*api.Description {
+	return h.handlers
+}
+
+func NewHandlers(log logger.Logger, req api.RequestHandler, users users.Users) (api.Handlers, error) {
+	h := &handlersImpl{
+		log:   log,
+		users: users,
+	}
+	h.handlers = []*api.Description{
+		{"/{project}/users", "POST", req.HandleWithBody(h.searchUsers), []string{api.DATA_MANAGEMENT}, api.DoNotTrack},
+		{"/{project}/users/{userID}", "GET", req.Handle(h.getUser), []string{api.DATA_MANAGEMENT}, "get_people_by_id"},
+		{"/{project}/users/{userID}", "DELETE", req.Handle(h.deleteUser), []string{api.DATA_MANAGEMENT}, "delete_people"},
+		{"/{project}/users/{userID}", "PUT", req.HandleWithBody(h.updateUser), []string{api.DATA_MANAGEMENT}, "update_people"},
+		{"/{project}/users/{userID}/activity", "POST", req.HandleWithBody(h.getUserActivity), []string{api.DATA_MANAGEMENT}, api.DoNotTrack},
+	}
+	return h, nil
+}
+
+// @Summary Search Users
+// @Description Search and filter users based on various criteria. Query parameter 'q' performs full-text search across $user_id, $email, and $name fields. Valid values for sortBy and columns are any User field names. Filter operators: is, isAny, isNot, isUndefined, contains, notContains, startsWith, endsWith (strings); =, <, >, <=, >=, != (numbers/dates).
+// @Tags Analytics - Users
+// @Accept json
+// @Produce json
+// @Param project path uint true "Project ID"
+// @Param q query string false "Search query for name, email, or user_id"
+// @Param searchUsersRequest body model.SearchUsersRequest true "Search Users Request"
+// @Success 200 {object} model.SearchUsersResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 413 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /{project}/users [post]
+func (h *handlersImpl) searchUsers(ctx *api.RequestContext) (any, int, error) {
+	projID, err := ctx.GetProjectID()
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get project ID: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	req := &model.SearchUsersRequest{}
+	if err := json.Unmarshal(ctx.Body, req); err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to unmarshal search request: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if query := ctx.Request.URL.Query().Get("q"); query != "" {
+		req.Query = query
+	}
+
+	if err = filters.ValidateStruct(req); err != nil {
+		h.log.Error(ctx.Request.Context(), "validation failed for search request: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	response, err := h.users.SearchUsers(ctx.Request.Context(), projID, req)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to search users for project %d: %v", projID, err)
+		return nil, http.StatusInternalServerError, err
+	}
+	return response, 0, nil
+}
+
+// @Summary Get User by UserID
+// @Description Retrieve detailed user information by their unique user ID with full profile data.
+// @Tags Analytics - Users
+// @Accept json
+// @Produce json
+// @Param project path uint true "Project ID"
+// @Param userID path string true "User ID"
+// @Success 200 {object} model.User
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 404 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /{project}/users/{userID} [get]
+func (h *handlersImpl) getUser(ctx *api.RequestContext) (any, int, error) {
+	projID, err := ctx.GetProjectID()
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get project ID: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	userID, err := api.GetPathParam(ctx.Request, "userID", api.ParseString)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get userID parameter: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if userID == "" {
+		h.log.Error(ctx.Request.Context(), "userID cannot be empty")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID cannot be empty")
+	}
+
+	if len(userID) > 256 {
+		h.log.Error(ctx.Request.Context(), "userID exceeds maximum length of 256 characters")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID exceeds maximum length of 256 characters")
+	}
+
+	response, err := h.users.GetByUserID(ctx.Request.Context(), projID, userID)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get user %s for project %d: %v", userID, projID, err)
+		return nil, http.StatusNotFound, err
+	}
+
+	return response, 0, nil
+}
+
+// @Summary Delete User
+// @Description Permanently delete a user and all associated data. This operation cannot be undone.
+// @Tags Analytics - Users
+// @Accept json
+// @Produce json
+// @Param project path uint true "Project ID"
+// @Param userID path string true "User ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 404 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /{project}/users/{userID} [delete]
+func (h *handlersImpl) deleteUser(ctx *api.RequestContext) (any, int, error) {
+	projID, err := ctx.GetProjectID()
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get project ID: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	userID, err := api.GetPathParam(ctx.Request, "userID", api.ParseString)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get userID parameter: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if userID == "" {
+		h.log.Error(ctx.Request.Context(), "userID cannot be empty")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID cannot be empty")
+	}
+
+	if len(userID) > 256 {
+		h.log.Error(ctx.Request.Context(), "userID exceeds maximum length of 256 characters")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID exceeds maximum length of 256 characters")
+	}
+
+	err = h.users.DeleteUser(ctx.Request.Context(), projID, userID)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to delete user %s for project %d: %v", userID, projID, err)
+		return nil, http.StatusNotFound, err
+	}
+
+	h.log.Info(ctx.Request.Context(), "successfully deleted user %s for project %d", userID, projID)
+	return map[string]string{"message": "user deleted successfully"}, 0, nil
+}
+
+// @Summary Update User
+// @Description Update user profile information. Partial updates supported - only provided fields are modified. Path parameter userId takes precedence over request body.
+// @Tags Analytics - Users
+// @Accept json
+// @Produce json
+// @Param project path uint true "Project ID"
+// @Param userID path string true "User ID"
+// @Param user body model.UserRequest true "User Data"
+// @Success 200 {object} model.User
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 404 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /{project}/users/{userID} [put]
+func (h *handlersImpl) updateUser(ctx *api.RequestContext) (any, int, error) {
+	projID, err := ctx.GetProjectID()
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get project ID: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	userID, err := api.GetPathParam(ctx.Request, "userID", api.ParseString)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to get userID parameter: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if userID == "" {
+		h.log.Error(ctx.Request.Context(), "userID cannot be empty")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID cannot be empty")
+	}
+
+	if len(userID) > 256 {
+		h.log.Error(ctx.Request.Context(), "userID exceeds maximum length of 256 characters")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID exceeds maximum length of 256 characters")
+	}
+
+	user := &model.UserRequest{}
+	if err := json.Unmarshal(ctx.Body, user); err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to unmarshal user data: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	user.UserID = userID
+
+	if err = filters.ValidateStruct(user); err != nil {
+		h.log.Error(ctx.Request.Context(), "validation failed for user data: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	response, err := h.users.UpdateUser(ctx.Request.Context(), projID, user)
+	if err != nil {
+		h.log.Error(ctx.Request.Context(), "failed to update user %s for project %d: %v", userID, projID, err)
+		return nil, http.StatusNotFound, err
+	}
+
+	h.log.Info(ctx.Request.Context(), "successfully updated user %s for project %d", userID, projID)
+	return response, 0, nil
+}
+
+// @Summary Get User Activity
+// @Description Get recent activity (events) for a specific user with pagination and date range filtering. Optionally hide specific events by $event_name.
+// @Tags Analytics - Users
+// @Accept json
+// @Produce json
+// @Param project path uint true "Project ID"
+// @Param userID path string true "User ID"
+// @Param userActivityRequest body model.UserActivityRequest true "User Activity Request"
+// @Success 200 {object} model.UserActivityResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 404 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /{project}/users/{userID}/activity [post]
+func (h *handlersImpl) getUserActivity(r *api.RequestContext) (any, int, error) {
+	projID, err := r.GetProjectID()
+	if err != nil {
+		h.log.Error(r.Request.Context(), "failed to get project ID: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	userID, err := api.GetPathParam(r.Request, "userID", api.ParseString)
+	if err != nil {
+		h.log.Error(r.Request.Context(), "failed to get userID parameter: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if userID == "" {
+		h.log.Error(r.Request.Context(), "userID cannot be empty")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID cannot be empty")
+	}
+
+	if len(userID) > 256 {
+		h.log.Error(r.Request.Context(), "userID exceeds maximum length of 256 characters")
+		return nil, http.StatusBadRequest, fmt.Errorf("userID exceeds maximum length of 256 characters")
+	}
+
+	req := &model.UserActivityRequest{}
+	if err := json.Unmarshal(r.Body, req); err != nil {
+		h.log.Error(r.Request.Context(), "failed to unmarshal activity request: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	if err = filters.ValidateStruct(req); err != nil {
+		h.log.Error(r.Request.Context(), "validation failed for activity request: %v", err)
+		return nil, http.StatusBadRequest, err
+	}
+
+	response, err := h.users.GetUserActivity(r.Request.Context(), projID, userID, req)
+	if err != nil {
+		h.log.Error(r.Request.Context(), "failed to get activity for user %s in project %d: %v", userID, projID, err)
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return response, 0, nil
+}

@@ -1,0 +1,135 @@
+# OpenReplay - Local Development Config (d1)
+# Copy to e.d1.yaml and fill in values.
+# Loaded by Viper when STAGE=d1 and VAULT_ENABLED=false.
+
+# ---- Common ----
+common:
+  messageSizeLimit: 1048576
+  maxMemoryUsage: 80
+  memoryLimitMB: 0
+  # Interservice auth (service-to-service only; never used by browser)
+  goInterserviceApiKey: ""
+  pythonInterserviceApiKey: ""
+
+# ---- PostgreSQL ----
+postgres:
+  string: "postgres://postgres:secret@127.0.0.1:5432/openreplay?sslmode=disable"
+  applicationName: openreplay-dev
+
+# ---- Redis ----
+redis:
+  connectionUrl: "redis://127.0.0.1:6379"
+  maxLength: 100000
+  readCount: 1
+  readBlockDuration: 200ms
+  closeTimeout: 5s
+  useCache: false
+
+# ---- S3 / Object Storage ----
+s3:
+  serviceName: openreplay-dev
+  cloud: aws
+  bucket: mobs
+  region: ap-south-1
+  accessKeyId: ""
+  secretAccessKey: ""
+  endpoint: ""
+  skipSslValidation: false
+  useS3Tags: true
+  iamRole: ""
+
+# ---- HTTP ----
+http:
+  host: ""
+  port: "8080"
+  timeout: 60s
+  jsonSizeLimit: 131072
+  jsonWithDataSizeLimit: 5242880
+  useCors: true
+  jwtSecret: "dev-jwt-secret"
+  jwtSpotSecret: "dev-jwt-spot-secret"
+  jwtExpiration: 3600s
+  jwtIssuer: openreplay
+
+# ---- Rate Limiter ----
+rateLimiter:
+  rate: 100
+  burst: 200
+  cleanupInterval: 1m
+  maxIdleTime: 5m
+
+# ---- ClickHouse (disabled) ----
+clickhouse:
+  url: ""
+  urlHttp: ""
+  database: default
+  username: default
+  password: ""
+
+# ---- Queue Topics ----
+topicRawWeb: raw
+topicRawMobile: raw-ios
+topicRawImages: raw-images
+topicCanvasImages: canvas-images
+topicRawAnalytics: raw-analytics
+topicCache: cache
+topicTrigger: trigger
+topicMobileTrigger: mobile-trigger
+topicCanvasTrigger: canvas-trigger
+topicAnalytics: analytics
+
+# ---- Queue Consumer Groups ----
+groupSink: sink
+groupStorage: storage
+groupDb: db
+groupEnder: ender
+groupCache: cache
+groupHeuristics: heuristics
+groupImageStorage: image-storage
+groupCanvasImage: canvas-image
+groupAnalytics: analytics
+
+# ---- Service Config ----
+beaconSizeLimit: 1000000
+compressionThreshold: 20000
+fileSizeLimit: 10000000
+tokenSecret: "dev-token-secret"
+uaParserFile: ./regexes.yaml
+maxmindDbFile: ./geoip.mmdb
+recordCanvas: false
+fsDir: /tmp/openreplay
+fsUlimit: 1000
+fileBuffer: 16384
+syncTimeout: 5
+cacheAssets: false
+assetsOrigin: "http://localhost:8080/sessions-assets"
+loggerTimeout: 60
+commitBatchTimeout: 60s
+batchQueueLimit: 20
+batchSizeLimit: 10000000
+partitionsNumber: 4
+useEncryption: false
+producerTimeout: 2000
+projectExpiration: 10m
+fileSplitSize: 1000000
+maxFileSize: 524288000
+compressionAlgo: zstd
+assetsSizeLimit: 60291456
+spotsDir: spots
+minimumStreamDuration: 15000
+useProfiler: false
+
+# ---- API Service ----
+assistUrl: "http://localhost:9001/assist/%s"
+assistKey: "dev-assist-key"
+assistLiveSuffix: "/sockets-live"
+assistListSuffix: "/sockets-list"
+assistRequestTimeout: 5s
+assistJwtSecret: "dev-assist-secret"
+assistJwtAlgorithm: HS512
+assistJwtIssuer: openreplay
+assistJwtExpiration: 144000
+
+prometheus:
+  namespace: openreplay
+  serviceName: openreplay-dev
