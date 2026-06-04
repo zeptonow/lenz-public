@@ -1,0 +1,91 @@
+import AiService from 'App/services/AiService';
+import TagWatchService from 'App/services/TagWatchService';
+
+import SearchService from 'App/services/SearchService';
+import AlertsService from './AlertsService';
+import AssistStatsService from './AssistStatsService';
+import AuditService from './AuditService';
+import ConfigService from './ConfigService';
+import DashboardService from './DashboardService';
+import ErrorService from './ErrorService';
+import FunnelService from './FunnelService';
+import HealthService from './HealthService';
+import MetricService from './MetricService';
+import NotesService from './NotesService';
+import RecordingsService from './RecordingsService';
+import SessionService from './SessionService';
+import UserService from './UserService';
+import WebhookService from './WebhookService';
+
+import LoginService from './loginService';
+import FilterService from './FilterService';
+import IssueReportsService from './IssueReportsService';
+import CustomFieldService from './CustomFieldService';
+import IntegrationsService from './IntegrationsService';
+import ProjectsService from './ProjectsService';
+import KaiService from '@/components/Kai/KaiService';
+import SignalService from './SignalService';
+import BillingService from '@/services/BillingService';
+import AnalyticsService from './AnalyticsService';
+
+export const dashboardService = new DashboardService();
+export const metricService = new MetricService();
+export const sessionService = new SessionService();
+export const userService = new UserService();
+export const funnelService = new FunnelService();
+export const auditService = new AuditService();
+export const errorService = new ErrorService();
+export const notesService = new NotesService();
+export const recordingsService = new RecordingsService();
+export const configService = new ConfigService();
+export const alertsService = new AlertsService();
+export const webhookService = new WebhookService();
+export const signalService = new SignalService();
+
+export const healthService = new HealthService();
+export const assistStatsService = new AssistStatsService();
+export const tagWatchService = new TagWatchService();
+export const aiService = new AiService();
+// Replay-only build: Spot disabled (kept for later).
+// export const spotService = new SpotService();
+export const loginService = new LoginService();
+export const filterService = new FilterService();
+export const issueReportsService = new IssueReportsService();
+export const customFieldService = new CustomFieldService();
+export const integrationsService = new IntegrationsService();
+export const searchService = new SearchService();
+export const projectsService = new ProjectsService();
+export const kaiService = new KaiService();
+export const billingService = new BillingService();
+export const analyticsService = new AnalyticsService();
+
+export const services = [
+  projectsService,
+  dashboardService,
+  metricService,
+  sessionService,
+  userService,
+  funnelService,
+  auditService,
+  errorService,
+  notesService,
+  recordingsService,
+  configService,
+  alertsService,
+  webhookService,
+  signalService,
+  healthService,
+  assistStatsService,
+  tagWatchService,
+  aiService,
+  // spotService,
+  loginService,
+  filterService,
+  issueReportsService,
+  customFieldService,
+  integrationsService,
+  searchService,
+  kaiService,
+  billingService,
+  analyticsService,
+];

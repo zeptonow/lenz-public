@@ -1,0 +1,198 @@
+# OpenReplay - Staging Config (s1)
+# Copy to e.s1.yaml and fill in values.
+# Loaded by Viper when STAGE=s1 and VAULT_ENABLED=false.
+
+# ---- Common ----
+common:
+  messageSizeLimit: 1048576
+  maxMemoryUsage: 80
+  memoryLimitMB: 0
+  # Interservice auth (service-to-service only; never used by browser)
+  goInterserviceApiKey: ""
+  pythonInterserviceApiKey: ""
+
+# ---- PostgreSQL ----
+postgres:
+  string: "postgres://openreplay:changeme@your-postgres-host:5432/openreplay?sslmode=disable"
+  applicationName: openreplay
+
+# ---- Redis ----
+redis:
+  connectionUrl: "redis://your-redis-host:6379"
+  maxLength: 100000
+  readCount: 1
+  readBlockDuration: 200ms
+  closeTimeout: 5s
+  useCache: false
+
+# ---- S3 / Object Storage ----
+s3:
+  serviceName: openreplay
+  cloud: aws
+  bucket: mobs
+  region: ap-south-1
+  accessKeyId: ""
+  secretAccessKey: ""
+  endpoint: ""
+  skipSslValidation: false
+  useS3Tags: true
+  iamRole: ""
+
+# ---- HTTP ----
+http:
+  host: ""
+  port: "8080"
+  timeout: 60s
+  jsonSizeLimit: 131072
+  jsonWithDataSizeLimit: 5242880
+  useCors: false
+  jwtSecret: "changeme-jwt-secret"
+  jwtSpotSecret: "changeme-jwt-spot-secret"
+  jwtExpiration: 3600s
+  jwtIssuer: openreplay
+
+# ---- Rate Limiter ----
+rateLimiter:
+  rate: 10
+  burst: 30
+  cleanupInterval: 1m
+  maxIdleTime: 5m
+
+# ---- ClickHouse (disabled for now) ----
+clickhouse:
+  url: ""
+  urlHttp: ""
+  database: default
+  username: default
+  password: ""
+  maxOpenConns: 20
+  maxIdleConns: 15
+  connMaxLifetime: 3m
+  compressionAlgo: lz4
+  debug: false
+  maxExecutionTime: 30
+  useTls: false
+
+# ---- Queue Topics ----
+topicRawWeb: raw
+topicRawMobile: raw-ios
+# Optional: Kafka (Confluent Cloud). Producer and consumer may use different clusters/credentials.
+# Legacy shared keys (used when producer/consumer-specific keys are omitted):
+# kafkaBrokers: "lkc-xxx.ap-south-1.aws.glb.confluent.cloud:9092"
+# kafkaSaslUsername: "<api-key>"
+# kafkaSaslPassword: "<api-secret>"
+# Producer-only (e.g. http):
+# kafkaProducerBrokers: "lkc-producer.ap-south-1.aws.glb.confluent.cloud:9092"
+# kafkaProducerSaslUsername: "<producer-api-key>"
+# kafkaProducerSaslPassword: "<producer-api-secret>"
+# Consumer-only (e.g. storage):
+# kafkaConsumerBrokers: "lkc-consumer.ap-south-1.aws.glb.confluent.cloud:9092"
+# kafkaConsumerSaslUsername: "<consumer-api-key>"
+# kafkaConsumerSaslPassword: "<consumer-api-secret>"
+# kafkaConsumerPartition: 0  # local dev; in K8s omit and use pod HOSTNAME suffix (e.g. ender-0 → 0)
+topicRawImages: raw-images
+topicCanvasImages: canvas-images
+topicRawAnalytics: raw-analytics
+topicCache: cache
+topicTrigger: trigger
+topicMobileTrigger: mobile-trigger
+topicCanvasTrigger: canvas-trigger
+topicAnalytics: analytics
+
+# ---- Queue Consumer Groups ----
+groupSink: sink
+groupStorage: storage
+groupDb: db
+groupEnder: ender
+groupCache: cache
+groupHeuristics: heuristics
+groupImageStorage: image-storage
+groupCanvasImage: canvas-image
+groupAnalytics: analytics
+
+# ---- HTTP Service ----
+beaconSizeLimit: 1000000
+compressionThreshold: 20000
+fileSizeLimit: 10000000
+tokenSecret: "changeme-token-secret"
+uaParserFile: /app/regexes.yaml
+maxmindDbFile: /app/geoip.mmdb
+recordCanvas: true
+canvasQuality: low
+canvasFps: 1
+mobileQuality: low
+mobileFps: 1
+
+# ---- Sink Service ----
+fsDir: /mnt/efs
+fsUlimit: 10000
+fileBuffer: 16384
+syncTimeout: 5
+cacheAssets: true
+assetsOrigin: "https://your-domain.com/sessions-assets"
+producerCloseTimeout: 15000
+cacheThreshold: 5
+cacheExpiration: 120
+cacheBlackList: ""
+
+# ---- DB Service ----
+loggerTimeout: 60
+commitBatchTimeout: 60s
+batchQueueLimit: 20
+batchSizeLimit: 10000000
+paUpdaterStartTime: "00:00"
+paUpdaterEndTime: "00:00"
+paUpdaterTickDuration: 60s
+chReadBatchSizeLimit: 500
+chSendBatchSizeLimit: 5000
+chReadUsersSizeLimit: 50
+
+# ---- Ender Service ----
+partitionsNumber: 16
+useEncryption: false
+producerTimeout: 2000
+projectExpiration: 10m
+
+# ---- Storage Service ----
+fileSplitSize: 1000000
+fileSplitTime: 15s
+retryTimeout: 2m
+deleteTimeout: 48h
+useFailover: false
+maxFileSize: 524288000
+useSort: true
+compressionAlgo: zstd
+
+# ---- Assets Service ----
+assetsSizeLimit: 60291456
+groupFailover: ""
+topicFailover: ""
+
+# ---- Images Service ----
+screenshotsDir: screenshots
+
+# ---- Canvases Service ----
+canvasDir: canvas
+
+# ---- Spot Service ----
+spotsDir: spots
+minimumStreamDuration: 15000
+
+# ---- API Service ----
+assistUrl: "http://localhost:9001/assist/%s"
+assistKey: "assist-secret-key"
+assistLiveSuffix: "/sockets-live"
+assistListSuffix: "/sockets-list"
+assistRequestTimeout: 5s
+assistJwtSecret: "changeme-assist-secret"
+assistJwtAlgorithm: HS512
+assistJwtIssuer: openreplay
+assistJwtExpiration: 144000
+
+# ---- Profiler ----
+useProfiler: false
+
+# ---- Prometheus ----
+prometheus:
+  namespace: openreplay
+  serviceName: openreplay-go

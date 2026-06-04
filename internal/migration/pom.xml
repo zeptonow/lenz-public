@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.zepto</groupId>
+    <artifactId>lenz-processor</artifactId>
+    <version>1.0</version>
+    <name>Lenz</name>
+    <description>Migration for Lenz Table</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>4.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase.ext</groupId>
+            <artifactId>liquibase-postgresql</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.2.2</version>
+                <configuration>
+                    <url>${db.url}</url>
+                    <username>${db.username}</username>
+                    <password>${db.password}</password>
+                    <changeLogFile>dml_changelog.xml</changeLogFile>
+                    <databaseChangeLogTableName>migration_history</databaseChangeLogTableName>
+                    <databaseChangeLogLockTableName>migration_lock</databaseChangeLogLockTableName>
+                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                    <outputChangeLogFile>dml_changelog.xml</outputChangeLogFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>qa</id>
+            <properties>
+                <db.url>db_url</db.url>
+                <db.username>username</db.username>
+                <db.password>password</db.password>
+            </properties>
+        </profile>
+    </profiles>
+</project>
