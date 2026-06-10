@@ -3,7 +3,6 @@
 FROM registry_url AS builder
 ARG ACCESS_TOKEN
 USER root
-RUN git config --global url."https://${ACCESS_TOKEN}:@github.com/zeptonow".insteadOf "https://github.com/zeptonow"
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*

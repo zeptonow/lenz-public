@@ -8,9 +8,6 @@ USER root
 # which on Alpine 3.21 is older than confluent-kafka-go's minimum requirement.
 RUN apk add --no-cache --update make git openssh openssl-dev pkgconf gcc g++ libc-dev bash
 USER cis
-RUN git config --global url."https://${ACCESS_TOKEN}:@github.com/".insteadOf "https://github.com/" && \
-    go env -w GOPRIVATE="github.com/zeptonow/*"
-
 WORKDIR /app
 ADD ./backend /app
 RUN go mod download
