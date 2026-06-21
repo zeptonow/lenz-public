@@ -160,14 +160,30 @@ export default class APIClient {
 
   private decodeJwt(jwt: string): any {
     const base64Url = jwt.split('.')[1];
-    const base64 = base64Url.replace('-', '+').replace('_', '/');
+    if (!base64Url) {
+      throw new Error('Malformed JWT: missing payload segment');
+    }
+    // Convert base64url -> base64. Use a global regex: a token can contain
+    // more than one `-` or `_`, and String.replace(string, ...) only swaps
+    // the first occurrence, which corrupts the payload before atob().
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(window.atob(base64));
   }
 
   isTokenExpired(token: string): boolean {
-    const decoded: any = this.decodeJwt(token);
-    const currentTime = Date.now() / 1000;
-    return decoded.exp < currentTime;
+    try {
+      const decoded: any = this.decodeJwt(token);
+      if (typeof decoded?.exp !== 'number') {
+        // No usable expiry -> treat as expired so we attempt a refresh
+        // instead of sending a token we can't reason about.
+        return true;
+      }
+      const currentTime = Date.now() / 1000;
+      return decoded.exp < currentTime;
+    } catch {
+      // If we can't decode it, don't trust it.
+      return true;
+    }
   }
 
   private async handleTokenRefresh(): Promise<string> {
@@ -357,30 +373,33 @@ export default class APIClient {
     path: string,
     params?: any,
     options?: any,
+    headers?: Record<string, any>,
     abortSignal?: AbortSignal,
   ): Promise<Response> {
     this.init.method = 'PUT';
-    return this.fetch(path, params, 'PUT');
+    return this.fetch(path, params, 'PUT', options, headers, abortSignal);
   }
 
   delete(
     path: string,
     params?: any,
     options?: any,
+    headers?: Record<string, any>,
     abortSignal?: AbortSignal,
   ): Promise<Response> {
     this.init.method = 'DELETE';
-    return this.fetch(path, params, 'DELETE');
+    return this.fetch(path, params, 'DELETE', options, headers, abortSignal);
   }
 
   patch(
     path: string,
     params?: any,
     options?: any,
+    headers?: Record<string, any>,
     abortSignal?: AbortSignal,
   ): Promise<Response> {
     this.init.method = 'PATCH';
-    return this.fetch(path, params, 'PATCH');
+    return this.fetch(path, params, 'PATCH', options, headers, abortSignal);
   }
 
   forceSiteId = (siteId: string) => {
