@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0
 	github.com/Masterminds/semver v1.5.0
-	github.com/andybalholm/brotli v1.1.1
+	github.com/andybalholm/brotli v1.2.7
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/confluentinc/confluent-kafka-go/v2 v2.14.1
 	github.com/docker/distribution v2.8.3+incompatible
